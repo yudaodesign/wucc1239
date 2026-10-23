@@ -1,0 +1,2174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>量化王管理后台 - 平台策略管理</title>
+<style>
+:root {
+  --bg: #f4f5f8;
+  --surface: #fafbfd;
+  --sidebar-bg: #1a1d24;
+  --sidebar-text: #9ba3b4;
+  --text: #1e2130;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border: #e5e7ed;
+  --accent: #3b6df0;
+  --accent-light: #e8edf9;
+  --danger: #e5484d;
+  --danger-light: #fef2f2;
+  --success: #30a46c;
+  --success-light: #eef9f2;
+  --warning: #f59e0b;
+  --warning-light: #fffbeb;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+
+.sidebar-logo {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-logo h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e8edf5;
+}
+
+.sidebar-logo span {
+  font-size: 11px;
+  color: var(--sidebar-text);
+  display: block;
+  margin-top: 2px;
+}
+
+.sidebar-nav { flex: 1; overflow-y: auto; padding: 8px 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 9px 18px;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-size: 13px;
+  gap: 10px;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  transition: all var(--transition);
+}
+
+.nav-item:hover { color: #c8cedb; background: rgba(255,255,255,0.03); }
+
+.nav-item.active {
+  color: #c8d4f7;
+  background: rgba(59, 109, 240, 0.12);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-group-header {
+  display: flex;
+  align-items: center;
+  padding: 9px 18px;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.nav-group-header .arrow { margin-left: auto; font-size: 10px; transition: transform var(--transition); }
+.nav-group.open .nav-group-header .arrow { transform: rotate(90deg); }
+
+.nav-sub { overflow: hidden; max-height: 0; transition: max-height 250ms ease; }
+.nav-group.open .nav-sub { max-height: 160px; }
+
+.nav-sub .nav-item { padding-left: 46px; font-size: 12.5px; }
+
+.main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.top-bar {
+  height: 48px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  flex-shrink: 0;
+}
+
+.breadcrumb { font-size: 13px; color: var(--text-secondary); }
+.breadcrumb span { color: var(--text-muted); margin: 0 6px; }
+.breadcrumb .current { color: var(--text); font-weight: 600; }
+
+.content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+.page-panel { display: none; }
+.page-panel.active { display: block; }
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+}
+
+.page-header h2 { font-size: 18px; font-weight: 700; }
+.page-header .desc { font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; max-width: 720px; line-height: 1.6; }
+
+.inner-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+  width: fit-content;
+  flex-wrap: wrap;
+}
+
+.inner-tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  transition: all var(--transition);
+}
+
+.inner-tab:hover { color: var(--text); background: var(--bg); }
+.inner-tab.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+.filter-bar {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-bar input, .filter-bar select {
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text);
+  background: #fff;
+  outline: none;
+}
+
+.filter-bar input:focus, .filter-bar select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 109, 240, 0.08);
+}
+
+.filter-bar input[type="text"] { width: 180px; }
+.filter-bar select { min-width: 120px; }
+
+.filter-date-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-date-range input[type="date"] {
+  width: 142px;
+}
+.filter-date-sep {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.btn {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all var(--transition);
+}
+
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #2f5cd6; }
+.btn-default { background: #fff; color: var(--text); border: 1px solid var(--border); }
+.btn-default:hover { background: var(--bg); }
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-edit-text, .btn-danger-text {
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius);
+  font-family: var(--font);
+}
+
+.btn-edit-text { color: var(--accent); }
+.btn-edit-text:hover { background: var(--accent-light); }
+.btn-danger-text { color: var(--danger); }
+.btn-danger-text:hover { background: var(--danger-light); }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.table-container {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+
+table { width: 100%; min-width: max-content; border-collapse: separate; border-spacing: 0; }
+
+thead th {
+  background: #f8f9fb;
+  padding: 11px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.sortable-th {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable-th:hover { color: var(--accent); }
+.sort-ctrl {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 0.75;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.sort-arrow {
+  font-size: 8px;
+  color: #c4c8d0;
+  cursor: pointer;
+  transition: color 0.15s;
+  user-select: none;
+}
+.sort-arrow:hover { color: var(--text-secondary); }
+.sort-arrow.active { color: var(--accent); }
+
+tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f1f5;
+  vertical-align: middle;
+}
+
+tbody tr:hover td { background: #fafbfd; }
+tbody tr:hover td.col-actions { background: #fafbfd; }
+tbody tr:last-child td { border-bottom: none; }
+
+thead th.col-actions {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: #f8f9fb;
+  box-shadow: -4px 0 8px -4px rgba(0, 0, 0, 0.08);
+}
+tbody td.col-actions {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--surface);
+  box-shadow: -4px 0 8px -4px rgba(0, 0, 0, 0.08);
+  white-space: nowrap;
+}
+
+.td-ellipsis { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tier-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.tier-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.tier-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.tier-yellow { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
+
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-pending { color: #7c5cff; }
+.status-pending::before { background: #7c5cff; }
+.status-processing { color: var(--accent); }
+.status-processing::before { background: var(--accent); }
+.status-done { color: var(--success); }
+.status-done::before { background: var(--success); }
+.status-ignored { color: var(--text-muted); }
+.status-ignored::before { background: var(--text-muted); }
+.status-delisted { color: var(--danger); }
+.status-delisted::before { background: var(--danger); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  margin: 0 4px 2px 0;
+  vertical-align: middle;
+}
+
+.tag-more {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #eef0f4;
+  border: 1px solid var(--border);
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+.col-hit-rules { max-width: 200px; line-height: 1.55; }
+
+.col-key-metric {
+  font-size: 12.5px;
+  white-space: nowrap;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-blue { background: #eef2ff; color: #4f46e5; }
+.tag-green { background: #ecfdf5; color: #047857; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 20px;
+  gap: 6px;
+  border-top: 1px solid #f0f1f5;
+}
+
+.pagination .page-info { font-size: 12.5px; color: var(--text-secondary); margin-right: 10px; }
+
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 1200px) {
+  .config-grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+
+.rule-group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.rule-group-header {
+  background: #f8f9fb;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.rule-group-header h4 { font-size: 13px; font-weight: 600; }
+.rule-group-header .meta { font-size: 11.5px; color: var(--text-muted); }
+
+.rule-item {
+  display: grid;
+  grid-template-columns: 1fr 112px 72px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f1f5;
+  font-size: 13px;
+}
+
+.rule-item:last-child { border-bottom: none; }
+
+.rule-item select.tier-select {
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  padding: 0 6px;
+  width: 100%;
+}
+
+.rule-item .name { font-weight: 500; }
+.rule-item .desc { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+.rule-item input[type="number"], .rule-item select {
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+  font-size: 12.5px;
+  width: 100%;
+}
+
+.logic-box {
+  background: #f0f4ff;
+  border: 1px dashed #93c5fd;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #1e3a8a;
+}
+
+.logic-box code {
+  background: #fff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.toggle-switch input { display: none; }
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #d1d5db;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  top: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+.form-group { margin-bottom: 16px; }
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-group .hint {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: var(--font);
+}
+
+.webhook-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.webhook-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.webhook-input-row input.webhook-input-invalid {
+  border-color: #f87171;
+}
+
+.webhook-field-feedback {
+  flex-shrink: 0;
+  font-size: 12px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.webhook-field-feedback.valid {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.webhook-field-feedback.invalid {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.badge-phase {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e0e7ff;
+  color: #4338ca;
+  font-weight: 600;
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+.drawer-overlay.open { opacity: 1; visibility: visible; }
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 640px;
+  max-width: 100vw;
+  height: 100vh;
+  background: var(--surface);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.drawer-header h3 { font-size: 16px; font-weight: 700; }
+
+.drawer-close {
+  border: none;
+  background: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
+
+.drawer-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.metric-negative { color: var(--danger); font-weight: 600; }
+.metric-positive { color: var(--success); font-weight: 600; }
+
+.hit-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-top: 6px;
+}
+
+.hit-detail-table th,
+.hit-detail-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.hit-detail-table th {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  background: #f8f9fb;
+}
+
+.hit-detail-table td:nth-child(2) { font-variant-numeric: tabular-nums; }
+.hit-detail-table td:nth-child(3) { color: var(--text-secondary); font-size: 12px; }
+
+.tier-badge-sm {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.drawer-section-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1e2130;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.25s;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.info-callout {
+  background: #f0f4ff;
+  border: 1px solid #c7d2fe;
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #3730a3;
+  margin-bottom: 16px;
+}
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #eef2ff;
+  border-bottom: 1px solid #c7d2fe;
+  font-size: 13px;
+}
+
+.batch-bar .count { font-weight: 600; color: var(--accent); margin-right: 8px; }
+
+.col-check { width: 40px; text-align: center; }
+.col-pool { font-family: Consolas, monospace; font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+
+.th-input {
+  width: 100%;
+  min-width: 64px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 6px;
+  font-size: 12.5px;
+}
+
+.th-input::placeholder { color: #c4c9d4; font-size: 12px; }
+
+.th-input:placeholder-shown:not(:focus) {
+  background: #fafbfd;
+  border: 1px dashed #d8dce5;
+}
+.th-input:disabled {
+  background: #f3f4f6;
+  border: 1px dashed #d8dce5;
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.th-input-affix {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-width: 64px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  padding: 0 6px 0 0;
+  box-sizing: border-box;
+}
+.th-input-affix:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 109, 240, 0.12);
+}
+.th-input-affix.invalid { border-color: var(--danger); }
+.th-input-affix .th-input {
+  border: none !important;
+  box-shadow: none;
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  background: transparent;
+}
+.th-input-affix .th-input:placeholder-shown:not(:focus),
+.th-input-affix .th-input:disabled {
+  border: none !important;
+  background: transparent;
+}
+.th-input-affix .th-input:focus { box-shadow: none; }
+.th-input-affix .th-input-suffix {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
+  line-height: 1;
+}
+.th-input-affix:has(.th-input:disabled) {
+  background: #f3f4f6;
+  border: 1px dashed #d8dce5;
+}
+.th-input-affix:has(.th-input:placeholder-shown:not(:focus)) {
+  background: #fafbfd;
+  border: 1px dashed #d8dce5;
+}
+.th-input-affix:has(.th-input:focus) {
+  border-style: solid;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 200ms ease;
+}
+
+.modal-overlay.open { opacity: 1; visibility: visible; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+  animation: modalIn 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal.modal-hit-detail { max-width: 620px; }
+
+.modal.modal-rules-config {
+  max-width: 920px;
+  max-height: min(90vh, 820px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal.modal-rules-config .modal-rules-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.modal.modal-rules-config .modal-rules-header h3 { margin: 0; font-size: 16px; }
+.modal.modal-rules-config .modal-rules-body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 22px 8px;
+}
+
+.modal.modal-rules-config .modal-actions {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tier-badge-hover { cursor: help; }
+
+.tier-hit-popover {
+  position: fixed;
+  z-index: 1600;
+  width: min(540px, calc(100vw - 24px));
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.14);
+  padding: 14px 16px 12px;
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms ease, visibility 150ms ease;
+}
+
+.tier-hit-popover.open { opacity: 1; visibility: visible; }
+
+.tier-popover-head {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.tier-hit-popover .hit-detail-table { margin-top: 8px; }
+
+
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.modal p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin: 0; }
+.modal .modal-list {
+  margin-top: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+  white-space: normal;
+  word-break: break-word;
+  background: #f8f9fb;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.threshold-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.rules-config-table .rule-name { min-width: 200px; max-width: 280px; }
+.rules-config-table .rule-name .sub { font-size: 11.5px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+.rules-config-table td.cell-na { color: var(--text-muted); text-align: center; font-size: 12px; }
+.rules-config-table thead th.col-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #f8f9fb;
+  box-shadow: 2px 0 6px -4px rgba(0,0,0,0.12);
+}
+.rules-config-table tbody td.col-sticky {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+  box-shadow: 2px 0 6px -4px rgba(0,0,0,0.08);
+}
+.rules-config-table thead th.th-yellow { background: #fefce8; color: #a16207; }
+.rules-config-table thead th.th-blue { background: #eff6ff; color: #1d4ed8; }
+.rules-config-table thead th.th-red { background: #fef2f2; color: #b91c1c; }
+.rules-config-table tbody tr.row-risk td { background: #fcfcfd; }
+.rules-config-table tbody tr.row-risk:hover td { background: #f8f9fb; }
+.rules-config-table tbody tr.row-risk:hover td.col-sticky { background: #f8f9fb; }
+.rules-config-table tbody tr.row-rule-off td { color: var(--text-muted); }
+.rules-config-table tbody tr.row-rule-off .rule-name strong { color: var(--text-secondary); font-weight: 600; }
+
+.rules-config-table .strategy-type-tag {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.rules-config-table .metric-block-end td { border-bottom: 2px solid #e5e7ed; }
+.global-inline-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.rules-default-hint {
+  margin: 0 0 12px;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.global-inline-bar .bar-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+.global-inline-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.global-inline-item input[type="number"] {
+  width: 64px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+  font-size: 13px;
+  font-family: var(--font);
+}
+
+.main-module { display: none; }
+.main-module.active { display: block; }
+
+.filter-panel-platform {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px 12px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-panel-platform .filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+@media (max-width: 1400px) {
+  .filter-panel-platform .filter-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.filter-panel-platform .filter-cell label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.filter-panel-platform .filter-cell select,
+.filter-panel-platform .filter-cell input {
+  width: 100%;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 8px;
+  font-size: 12.5px;
+  font-family: var(--font);
+  background: #fff;
+}
+
+.filter-range-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-range-pair input { flex: 1; min-width: 0; }
+
+.filter-panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f1f5;
+}
+
+.filter-fields-placeholder {
+  min-height: 168px;
+  border: 1px dashed #d8dce5;
+  border-radius: var(--radius-lg);
+  background: #fafbfd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+.filter-tier-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.filter-tier-row .filter-cell {
+  min-width: 200px;
+}
+
+.filter-tier-row .filter-cell label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.filter-tier-row .filter-cell select {
+  width: 100%;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 10px;
+  font-size: 13px;
+  font-family: var(--font);
+  background: #fff;
+}
+
+.link-strategy {
+  color: var(--accent);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.link-strategy:hover { text-decoration: underline; }
+
+.audit-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.online-pill-on {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.online-pill-off {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.platform-ops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 320px;
+}
+
+.op-btn {
+  padding: 2px 7px;
+  font-size: 11px;
+  line-height: 1.5;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font);
+  white-space: nowrap;
+}
+
+.op-btn-audit { background: #409eff; color: #fff; border-color: #409eff; }
+.op-btn-offline { background: #faad14; color: #fff; border-color: #faad14; }
+.op-btn-edit { background: #f4f4f5; color: #606266; border-color: #dcdfe6; }
+.op-btn-detail { background: #ecf5ff; color: #409eff; border-color: #b3d8ff; }
+.op-btn-del { background: #fef0f0; color: #f56c6c; border-color: #fbc4c4; }
+.op-btn-algo { background: #e6fffb; color: #13c2c2; border-color: #87e8de; }
+.op-btn-log { background: #fff; color: var(--accent); border-color: var(--border); }
+
+.op-btn:hover { filter: brightness(0.96); }
+
+.col-serial { width: 48px; text-align: center; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <h1>量化王管理后台</h1>
+    <span>QuantKing Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="#"><span class="icon">⌂</span> 首页</a>
+    <div class="nav-section">
+      <div class="nav-group open" onclick="this.classList.toggle('open')">
+        <div class="nav-group-header"><span class="icon">◈</span> 策略管理 <span class="arrow">▶</span></div>
+        <div class="nav-sub">
+          <a class="nav-item active" href="#" onclick="return false;">平台策略管理</a>
+        </div>
+      </div>
+    </div>
+    <a class="nav-item" href="#"><span class="icon">▤</span> 数据统计</a>
+    <a class="nav-item" href="#"><span class="icon">☷</span> 用户管理</a>
+  </nav>
+</aside>
+
+<div class="main-area">
+  <div class="top-bar">
+    <div class="breadcrumb" id="breadcrumb">
+      <span>首页</span><span>›</span><span>策略管理</span><span>›</span><span class="current">平台策略管理</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- 平台策略管理 -->
+    <section class="main-module active" id="module-platform">
+      <div class="page-header">
+        <div>
+          <h2>平台策略管理</h2>
+        </div>
+      </div>
+
+      <div class="filter-panel-platform">
+        <div class="filter-fields-placeholder" aria-hidden="true">线上现有支持筛选的字段</div>
+        <div class="filter-tier-row">
+          <div class="filter-cell">
+            <label for="psFilterTier">告警等级</label>
+            <select id="psFilterTier">
+              <option value="">全部</option>
+              <option value="红色">红色</option>
+              <option value="蓝色">蓝色</option>
+              <option value="—">无告警（—）</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-panel-actions">
+          <button type="button" class="btn btn-primary" onclick="applyPlatformTableFilter()">查询</button>
+          <button type="button" class="btn btn-default" onclick="resetPlatformFilters()">重置</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" class="btn btn-primary" onclick="showToast('打开新增策略（原型）')">新增</button>
+        <button type="button" class="btn btn-primary" onclick="showToast('批量审核（原型）')">批量审核</button>
+        <button type="button" class="btn btn-default" onclick="openWarningRulesModal()">预警规则</button>
+      </div>
+
+      <div class="table-container">
+        <table class="platform-strategy-table">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox" id="psCheckAll" title="全选"></th>
+              <th class="col-serial">序号</th>
+              <th>绑定股池 ID</th>
+              <th>策略名称</th>
+              <th>上线时间</th>
+              <th>开始时间</th>
+              <th>上线状态</th>
+              <th>审核状态</th>
+              <th>策略性质</th>
+              <th>策略类型</th>
+              <th>榜单划分</th>
+              <th>今日收益</th>
+              <th>累计收益</th>
+              <th>年化收益</th>
+              <th>7日收益</th>
+              <th>30日收益</th>
+              <th>3月收益</th>
+              <th>6月收益</th>
+              <th>1年收益</th>
+              <th>总预期收益</th>
+              <th>最大回撤</th>
+              <th>胜率</th>
+              <th>盈亏比</th>
+              <th>市场风格</th>
+              <th>风险等级</th>
+              <th>资金容量</th>
+              <th>解锁条件</th>
+              <th>告警等级</th>
+              <th>操作人</th>
+              <th class="col-actions">操作</th>
+              <th>状态变更记录</th>
+            </tr>
+          </thead>
+          <tbody id="platformTableBody"></tbody>
+        </table>
+        <div class="pagination">
+          <span class="page-info" id="platformPageInfo">共 8 条</span>
+          <button type="button" disabled>‹</button>
+          <button type="button" class="active">1</button>
+          <button type="button">›</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="modal-overlay" id="warningRulesModal" onclick="if(event.target===this) closeWarningRulesModal()">
+  <div class="modal modal-rules-config" role="dialog" aria-labelledby="warningRulesModalTitle">
+    <div class="modal-rules-header">
+      <div>
+        <h3 id="warningRulesModalTitle">预警规则</h3>
+        <p class="rules-default-hint" style="margin-top:6px;margin-bottom:0;">点击文本框即可输入阈值，不填表示不启用。</p>
+      </div>
+      <button type="button" class="drawer-close" onclick="closeWarningRulesModal()" aria-label="关闭">×</button>
+    </div>
+    <div class="modal-rules-body">
+      <div class="table-container">
+        <table class="rules-config-table" id="rulesConfigModal">
+          <thead>
+            <tr>
+              <th class="col-sticky">规则 / 指标</th>
+              <th>启用</th>
+              <th>策略类型</th>
+              <th class="th-blue">蓝色阈值</th>
+              <th class="th-red">红色阈值</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-sticky rule-name"><strong>数据异常</strong><div class="sub">无阈值，命中即为红色告警等级</div></td>
+              <td><label class="toggle-switch"><input type="checkbox" class="rule-enable-toggle" checked><span class="toggle-slider"></span></label></td>
+              <td class="cell-na" colspan="3">无阈值</td>
+            </tr>
+            <tr class="row-risk">
+              <td class="col-sticky rule-name" rowspan="2"><strong>累计收益 ≤</strong></td>
+              <td rowspan="2"><label class="toggle-switch"><input type="checkbox" class="rule-enable-toggle" checked><span class="toggle-slider"></span></label></td>
+              <td><span class="strategy-type-tag">ETF</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-5" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-10" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+            <tr class="row-risk metric-block-end">
+              <td><span class="strategy-type-tag">股票</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-15" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-25" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+            <tr class="row-risk">
+              <td class="col-sticky rule-name" rowspan="2"><strong>最大回撤 ≥</strong></td>
+              <td rowspan="2"><label class="toggle-switch"><input type="checkbox" class="rule-enable-toggle" checked><span class="toggle-slider"></span></label></td>
+              <td><span class="strategy-type-tag">ETF</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="5" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="10" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+            <tr class="row-risk metric-block-end">
+              <td><span class="strategy-type-tag">股票</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="15" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="20" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+            <tr class="row-risk">
+              <td class="col-sticky rule-name" rowspan="2"><strong>30日收益 ≤</strong></td>
+              <td rowspan="2"><label class="toggle-switch"><input type="checkbox" class="rule-enable-toggle" checked><span class="toggle-slider"></span></label></td>
+              <td><span class="strategy-type-tag">ETF</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-5" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-10" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+            <tr class="row-risk metric-block-end">
+              <td><span class="strategy-type-tag">股票</span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-8" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+              <td><span class="th-input-affix"><input class="th-input th-input-num" type="text" inputmode="decimal" value="-15" placeholder="不启用"><span class="th-input-suffix">%</span></span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-default" onclick="closeWarningRulesModal()">取消</button>
+      <button type="button" class="btn btn-primary" onclick="saveWarningRulesModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="tierHitPopover" class="tier-hit-popover" hidden aria-hidden="true"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const alertSamples = [
+  {
+    id: 'RK-20261020-001',
+    status: '待确认',
+    tier: '红色',
+    strategyType: 'ETF',
+    triggerDate: '2026-10-20',
+    lastOperator: '—',
+    pool: 'SP-88421',
+    name: '锋刃·高成长专精组合',
+    hits: [
+      { field: '数据异常', value: '累计收益 返回 null', threshold: '无阈值', tier: '红色' },
+      { field: '累计收益', value: '-18.6%', threshold: '-18%', tier: '红色' },
+      { field: '30日收益', value: '-9.2%', threshold: '-12%', tier: '红色' },
+      { field: '最大回撤', value: '22.4%', threshold: '20%', tier: '红色' }
+    ]
+  },
+  {
+    id: 'RK-20261020-002',
+    status: '待确认',
+    tier: '红色',
+    strategyType: '股票',
+    triggerDate: '2026-10-20',
+    lastOperator: '—',
+    pool: 'SP-77209',
+    name: '风驰九霄',
+    hits: [
+      { field: '最大回撤', value: '31.2%', threshold: '25%', tier: '红色' },
+      { field: '累计收益', value: '-28.0%', threshold: '-25%', tier: '红色' }
+    ]
+  },
+  {
+    id: 'RK-20261020-006',
+    status: '待确认',
+    tier: '红色',
+    strategyType: '股票',
+    triggerDate: '2026-10-20',
+    lastOperator: '—',
+    pool: 'SP-90311',
+    name: '稳基固收增强',
+    hits: [
+      { field: '30日收益', value: '-13.4%', threshold: '-18%', tier: '红色' }
+    ]
+  },
+  {
+    id: 'RK-20261020-003',
+    status: '待确认',
+    tier: '蓝色',
+    strategyType: '股票',
+    triggerDate: '2026-10-20',
+    lastOperator: '李四',
+    pool: 'SP-66102',
+    name: '青虎裂空',
+    hits: [
+      { field: '最大回撤', value: '22.1%', threshold: '18%', tier: '蓝色' },
+      { field: '30日收益', value: '-8.4%', threshold: '-12%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261020-007',
+    status: '待确认',
+    tier: '蓝色',
+    strategyType: 'ETF',
+    triggerDate: '2026-10-19',
+    lastOperator: '—',
+    pool: 'SP-71200',
+    name: '均衡匠心',
+    hits: [
+      { field: '累计收益', value: '-14.2%', threshold: '-12%', tier: '蓝色' },
+      { field: '30日收益', value: '-7.1%', threshold: '-12%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261020-008',
+    status: '待确认',
+    tier: '蓝色',
+    strategyType: '股票',
+    triggerDate: '2026-10-18',
+    lastOperator: '—',
+    pool: 'SP-62880',
+    name: '波段猎手',
+    hits: [
+      { field: '最大回撤', value: '14.5%', threshold: '12%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261019-088',
+    status: '待确认',
+    tier: '蓝色',
+    strategyType: '股票',
+    triggerDate: '2026-10-19',
+    lastOperator: '李四',
+    pool: 'SP-55018',
+    name: '价值深耕',
+    hits: [
+      { field: '30日收益', value: '-6.2%', threshold: '-6%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261015-042',
+    status: '已忽略',
+    tier: '蓝色',
+    strategyType: 'ETF',
+    triggerDate: '2026-10-15',
+    lastOperator: '张三',
+    pool: 'SP-33102',
+    name: '指数先锋',
+    hits: [
+      { field: '30日收益', value: '-4.8%', threshold: '-12%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261012-033',
+    status: '已忽略',
+    tier: '蓝色',
+    strategyType: '股票',
+    triggerDate: '2026-10-12',
+    lastOperator: '赵六',
+    pool: 'SP-22018',
+    name: '长线稳进',
+    hits: [
+      { field: '累计收益', value: '-13.2%', threshold: '-12%', tier: '蓝色' }
+    ]
+  },
+  {
+    id: 'RK-20261008-021',
+    status: '处理下架',
+    tier: '红色',
+    strategyType: '股票',
+    triggerDate: '2026-10-08',
+    lastOperator: '王五',
+    pool: 'SP-11880',
+    name: '旧日锋芒',
+    hits: [
+      { field: '最大回撤', value: '34.5%', threshold: '30%', tier: '红色' },
+      { field: '累计收益', value: '-32.1%', threshold: '-25%', tier: '红色' }
+    ]
+  }
+];
+
+const platformStrategySamples = [
+  {
+    poolId: '8083',
+    name: '致远稳健配置',
+    onlineTime: '—',
+    startTime: '2026-10-21 18:01',
+    onlineStatus: '未上线',
+    auditStatus: '待审核',
+    nature: '定制策略',
+    strategyType: 'ETF资产配置',
+    listDivision: '—',
+    todayReturn: '0.00%',
+    cumulativeReturn: '2.15%',
+    annualReturn: '8.32%',
+    return7d: '0.42%',
+    return30d: '1.02%',
+    return3m: '3.35%',
+    return6m: '5.12%',
+    return1y: '3.35%',
+    expectedReturn: '30.01%',
+    maxDrawdown: '8.28%',
+    winRate: '52.3%',
+    profitLossRatio: '1.26',
+    marketStyle: '基本面',
+    riskLevel: '稳健',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '刘成'
+  },
+  {
+    poolId: '8082',
+    name: '静川稳健配置',
+    onlineTime: '—',
+    startTime: '2026-10-21 17:48',
+    onlineStatus: '未上线',
+    auditStatus: '待审核',
+    nature: '定制策略',
+    strategyType: 'ETF资产配置',
+    listDivision: '—',
+    todayReturn: '0.00%',
+    cumulativeReturn: '1.88%',
+    annualReturn: '7.95%',
+    return7d: '0.38%',
+    return30d: '0.96%',
+    return3m: '3.12%',
+    return6m: '4.88%',
+    return1y: '3.20%',
+    expectedReturn: '28.50%',
+    maxDrawdown: '7.95%',
+    winRate: '51.8%',
+    profitLossRatio: '1.22',
+    marketStyle: '基本面',
+    riskLevel: '稳健',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '张海瑞'
+  },
+  {
+    poolId: '8061',
+    name: '均衡匠心',
+    onlineTime: '2026-10-18 09:30',
+    startTime: '2026-09-01 10:00',
+    onlineStatus: '已上线',
+    auditStatus: '已通过',
+    nature: '平台策略',
+    strategyType: 'ETF资产配置',
+    listDivision: '稳健榜',
+    todayReturn: '-0.12%',
+    cumulativeReturn: '12.40%',
+    annualReturn: '15.20%',
+    return7d: '-0.85%',
+    return30d: '-7.10%',
+    return3m: '2.10%',
+    return6m: '8.44%',
+    return1y: '11.02%',
+    expectedReturn: '35.00%',
+    maxDrawdown: '11.20%',
+    winRate: '48.6%',
+    profitLossRatio: '1.18',
+    marketStyle: '技术面',
+    riskLevel: '积极',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '李四',
+    alertPool: 'SP-71200'
+  },
+  {
+    poolId: '8055',
+    name: '锋刃·高成长专精组合',
+    onlineTime: '2026-10-10 14:20',
+    startTime: '2026-08-15 11:00',
+    onlineStatus: '已上线',
+    auditStatus: '已通过',
+    nature: '定制策略',
+    strategyType: '股票量化',
+    listDivision: '成长榜',
+    todayReturn: '-0.45%',
+    cumulativeReturn: '-18.60%',
+    annualReturn: '-22.10%',
+    return7d: '-2.30%',
+    return30d: '-9.20%',
+    return3m: '-12.40%',
+    return6m: '-15.80%',
+    return1y: '-18.20%',
+    expectedReturn: '45.00%',
+    maxDrawdown: '22.40%',
+    winRate: '42.1%',
+    profitLossRatio: '0.92',
+    marketStyle: '技术面',
+    riskLevel: '积极',
+    capacity: '10-50万',
+    unlockCondition: 'VIP',
+    operator: '王五',
+    alertPool: 'SP-88421'
+  },
+  {
+    poolId: '8042',
+    name: '风驰九霄',
+    onlineTime: '2026-09-20 16:00',
+    startTime: '2026-07-01 09:30',
+    onlineStatus: '已上线',
+    auditStatus: '已通过',
+    nature: '平台策略',
+    strategyType: '股票量化',
+    listDivision: '—',
+    todayReturn: '-0.88%',
+    cumulativeReturn: '-28.00%',
+    annualReturn: '-30.50%',
+    return7d: '-3.10%',
+    return30d: '-6.80%',
+    return3m: '-18.20%',
+    return6m: '-24.50%',
+    return1y: '-28.00%',
+    expectedReturn: '40.00%',
+    maxDrawdown: '31.20%',
+    winRate: '39.5%',
+    profitLossRatio: '0.85',
+    marketStyle: '技术面',
+    riskLevel: '积极',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '赵六',
+    alertPool: 'SP-77209'
+  },
+  {
+    poolId: '8033',
+    name: '青虎裂空',
+    onlineTime: '2026-09-05 10:15',
+    startTime: '2026-06-18 14:00',
+    onlineStatus: '已上线',
+    auditStatus: '已通过',
+    nature: '定制策略',
+    strategyType: '股票量化',
+    listDivision: '短线榜',
+    todayReturn: '0.22%',
+    cumulativeReturn: '6.80%',
+    annualReturn: '9.60%',
+    return7d: '1.05%',
+    return30d: '-8.40%',
+    return3m: '4.20%',
+    return6m: '7.30%',
+    return1y: '8.90%',
+    expectedReturn: '32.00%',
+    maxDrawdown: '22.10%',
+    winRate: '50.2%',
+    profitLossRatio: '1.15',
+    marketStyle: '技术面',
+    riskLevel: '积极',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '李四',
+    alertPool: 'SP-66102'
+  },
+  {
+    poolId: '8020',
+    name: '旧日锋芒',
+    onlineTime: '2026-05-01 09:00',
+    startTime: '2026-03-10 09:00',
+    onlineStatus: '已下线',
+    auditStatus: '已通过',
+    nature: '平台策略',
+    strategyType: '股票量化',
+    listDivision: '—',
+    todayReturn: '—',
+    cumulativeReturn: '-32.10%',
+    annualReturn: '-28.00%',
+    return7d: '—',
+    return30d: '—',
+    return3m: '—',
+    return6m: '—',
+    return1y: '—',
+    expectedReturn: '38.00%',
+    maxDrawdown: '34.50%',
+    winRate: '37.0%',
+    profitLossRatio: '0.78',
+    marketStyle: '技术面',
+    riskLevel: '积极',
+    capacity: '10-50万',
+    unlockCondition: '无',
+    operator: '王五',
+    alertPool: 'SP-11880'
+  },
+  {
+    poolId: '8015',
+    name: '指数先锋',
+    onlineTime: '2026-08-22 11:30',
+    startTime: '2026-06-01 09:30',
+    onlineStatus: '已上线',
+    auditStatus: '已通过',
+    nature: '平台策略',
+    strategyType: 'ETF资产配置',
+    listDivision: '指数榜',
+    todayReturn: '0.08%',
+    cumulativeReturn: '4.20%',
+    annualReturn: '6.50%',
+    return7d: '0.55%',
+    return30d: '-4.80%',
+    return3m: '1.80%',
+    return6m: '3.60%',
+    return1y: '4.90%',
+    expectedReturn: '25.00%',
+    maxDrawdown: '6.20%',
+    winRate: '54.0%',
+    profitLossRatio: '1.30',
+    marketStyle: '基本面',
+    riskLevel: '稳健',
+    capacity: '>50万',
+    unlockCondition: '无',
+    operator: '张三',
+    alertPool: 'SP-33102'
+  }
+];
+
+var ALERT_METRIC_PRIORITY = ['数据异常', '累计收益', '最大回撤', '30日收益'];
+
+var ALERT_TIER_RANK = { '蓝色': 1, '红色': 2 };
+
+function tierBadgeSmClass(tier) {
+  if (tier === '红色') return 'tier-red';
+  if (tier === '蓝色') return 'tier-blue';
+  return '';
+}
+
+function renderHitDetailTable(hits) {
+  if (!hits || !hits.length) {
+    return '<p class="hint">当前无命中项</p>';
+  }
+  var rows = hits.map(function (h) {
+    var tc = tierBadgeSmClass(h.tier);
+    return '<tr><td>' + h.field + '</td><td>' + h.value + '</td><td>' + h.threshold + '</td><td>' +
+      (h.tier && h.tier !== '—' ? '<span class="tier-badge tier-badge-sm ' + tc + '">' + h.tier + '</span>' : '—') +
+      '</td></tr>';
+  }).join('');
+  return '<table class="hit-detail-table"><thead><tr><th>指标</th><th>当前值</th><th>命中阈值</th><th>告警等级</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function platformRowMatchesAlert(row, alert) {
+  if (!row || !alert || alert.status === '已忽略') return false;
+  var poolKey = row.alertPool || row.poolId;
+  return (row.alertPool && alert.pool === row.alertPool) ||
+    (alert.pool && String(alert.pool).replace(/\D/g, '') === String(poolKey)) ||
+    (alert.name === row.name);
+}
+
+function collectPlatformAlertHits(row) {
+  var allHits = [];
+  alertSamples.forEach(function (a) {
+    if (!platformRowMatchesAlert(row, a) || !a.hits) return;
+    allHits = allHits.concat(a.hits);
+  });
+  return allHits;
+}
+
+function resolvePlatformAlertTier(row) {
+  var bestTier = '';
+  var bestRank = -1;
+  alertSamples.forEach(function (a) {
+    if (!platformRowMatchesAlert(row, a)) return;
+    var rank = ALERT_TIER_RANK[a.tier] || 0;
+    if (rank > bestRank) {
+      bestRank = rank;
+      bestTier = a.tier;
+    }
+  });
+  return bestTier || '—';
+}
+
+function renderPlatformOps(row) {
+  var ops = [];
+  if (row.auditStatus === '待审核') {
+    ops.push('<button type="button" class="op-btn op-btn-audit" onclick="showToast(\'审核：' + row.name + '（原型）\')">审核</button>');
+  }
+  if (row.onlineStatus === '已上线') {
+    ops.push('<button type="button" class="op-btn op-btn-offline" onclick="showToast(\'下线：' + row.name + '（原型）\')">下线</button>');
+  }
+  ops.push('<button type="button" class="op-btn op-btn-edit" onclick="showToast(\'编辑（原型）\')">编辑</button>');
+  ops.push('<button type="button" class="op-btn op-btn-detail" onclick="showToast(\'查看详情（原型）\')">详情</button>');
+  ops.push('<button type="button" class="op-btn op-btn-del" onclick="showToast(\'删除（原型）\')">删除</button>');
+  ops.push('<button type="button" class="op-btn op-btn-algo" onclick="showToast(\'算法编辑（原型）\')">算法编辑</button>');
+  return '<div class="platform-ops">' + ops.join('') + '</div>';
+}
+
+function renderPlatformTableBody() {
+  var tbody = document.getElementById('platformTableBody');
+  if (!tbody) return;
+  var html = platformStrategySamples.map(function (row, index) {
+    var tier = resolvePlatformAlertTier(row);
+    var tierCls = tier === '—' ? '' : tierBadgeSmClass(tier);
+    var tierCell = tier === '—'
+      ? '—'
+      : '<span class="tier-badge tier-badge-hover ' + tierCls + '" data-platform-index="' + index + '" tabindex="0">' + tier + '</span>';
+    var onlineCls = row.onlineStatus === '已上线' ? 'online-pill-on' : 'online-pill-off';
+    var auditCell = row.auditStatus === '待审核'
+      ? '<span class="audit-pill">' + row.auditStatus + '</span>'
+      : row.auditStatus;
+    return (
+      '<tr class="platform-row" data-pool="' + row.poolId + '" data-name="' + String(row.name).replace(/"/g, '&quot;') + '" data-tier="' + tier + '" data-online="' + row.onlineStatus + '" data-audit="' + row.auditStatus + '" data-type="' + row.strategyType + '" data-nature="' + row.nature + '" data-style="' + row.marketStyle + '" data-risk="' + row.riskLevel + '" data-cap="' + row.capacity + '">' +
+      '<td class="col-check"><input type="checkbox" class="ps-row-check"></td>' +
+      '<td class="col-serial">' + (index + 1) + '</td>' +
+      '<td>' + row.poolId + '</td>' +
+      '<td><a class="link-strategy" href="#" onclick="showToast(\'策略详情（原型）\'); return false;">' + row.name + '</a></td>' +
+      '<td>' + row.onlineTime + '</td>' +
+      '<td>' + row.startTime + '</td>' +
+      '<td><span class="' + onlineCls + '">' + row.onlineStatus + '</span></td>' +
+      '<td>' + auditCell + '</td>' +
+      '<td>' + row.nature + '</td>' +
+      '<td>' + row.strategyType + '</td>' +
+      '<td>' + row.listDivision + '</td>' +
+      '<td>' + row.todayReturn + '</td>' +
+      '<td>' + row.cumulativeReturn + '</td>' +
+      '<td>' + row.annualReturn + '</td>' +
+      '<td>' + row.return7d + '</td>' +
+      '<td>' + row.return30d + '</td>' +
+      '<td>' + row.return3m + '</td>' +
+      '<td>' + row.return6m + '</td>' +
+      '<td>' + row.return1y + '</td>' +
+      '<td>' + row.expectedReturn + '</td>' +
+      '<td>' + row.maxDrawdown + '</td>' +
+      '<td>' + row.winRate + '</td>' +
+      '<td>' + row.profitLossRatio + '</td>' +
+      '<td>' + row.marketStyle + '</td>' +
+      '<td>' + row.riskLevel + '</td>' +
+      '<td>' + row.capacity + '</td>' +
+      '<td>' + row.unlockCondition + '</td>' +
+      '<td>' + tierCell + '</td>' +
+      '<td>' + row.operator + '</td>' +
+      '<td class="col-actions">' + renderPlatformOps(row) + '</td>' +
+      '<td><button type="button" class="op-btn op-btn-log" onclick="showToast(\'状态变更记录（原型）\')">查看</button></td>' +
+      '</tr>'
+    );
+  }).join('');
+  tbody.innerHTML = html;
+  bindPlatformTierPopovers();
+  applyPlatformTableFilter();
+}
+
+var tierPopoverHideTimer = null;
+
+function orderHitsForDisplay(hits) {
+  if (!hits || !hits.length) return [];
+  var ordered = [];
+  var used = {};
+  ALERT_METRIC_PRIORITY.forEach(function (name) {
+    hits.forEach(function (h) {
+      if (h.field === name && !used[name + h.tier]) {
+        used[name + h.tier] = true;
+        ordered.push(h);
+      }
+    });
+  });
+  hits.forEach(function (h) {
+    var key = h.field + h.tier;
+    if (!used[key]) {
+      used[key] = true;
+      ordered.push(h);
+    }
+  });
+  return ordered;
+}
+
+function buildTierPopoverContent(hits) {
+  return (
+    '<div class="tier-popover-head">命中详情</div>' +
+    '<p class="drawer-section-sub">以下为最新巡检数据命中的全部规则及对应阈值、告警等级。</p>' +
+    renderHitDetailTable(orderHitsForDisplay(hits))
+  );
+}
+
+function positionTierHitPopover(anchorEl) {
+  var pop = document.getElementById('tierHitPopover');
+  if (!pop || !anchorEl) return;
+  pop.style.visibility = 'hidden';
+  pop.classList.add('open');
+  pop.hidden = false;
+  var rect = anchorEl.getBoundingClientRect();
+  var gap = 8;
+  var left = rect.left;
+  var top = rect.bottom + gap;
+  var pw = pop.offsetWidth;
+  var ph = pop.offsetHeight;
+  if (left + pw > window.innerWidth - 12) left = window.innerWidth - pw - 12;
+  if (left < 12) left = 12;
+  if (top + ph > window.innerHeight - 12) top = rect.top - ph - gap;
+  if (top < 12) top = 12;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.style.visibility = 'visible';
+}
+
+function showTierHitPopover(platformIndex, anchorEl) {
+  var row = platformStrategySamples[platformIndex];
+  if (!row) return;
+  var hits = collectPlatformAlertHits(row);
+  if (!hits.length) return;
+  var pop = document.getElementById('tierHitPopover');
+  if (!pop) return;
+  clearTimeout(tierPopoverHideTimer);
+  pop.innerHTML = buildTierPopoverContent(hits);
+  pop.setAttribute('aria-hidden', 'false');
+  positionTierHitPopover(anchorEl);
+}
+
+function hideTierHitPopover() {
+  var pop = document.getElementById('tierHitPopover');
+  if (!pop) return;
+  pop.classList.remove('open');
+  pop.hidden = true;
+  pop.setAttribute('aria-hidden', 'true');
+}
+
+function scheduleHideTierHitPopover() {
+  clearTimeout(tierPopoverHideTimer);
+  tierPopoverHideTimer = setTimeout(hideTierHitPopover, 160);
+}
+
+function bindPlatformTierPopovers() {
+  document.querySelectorAll('#platformTableBody .tier-badge-hover').forEach(function (badge) {
+    if (badge.dataset.popoverBound === '1') return;
+    badge.dataset.popoverBound = '1';
+    badge.addEventListener('mouseenter', function () {
+      var idx = parseInt(badge.getAttribute('data-platform-index'), 10);
+      if (isNaN(idx)) return;
+      showTierHitPopover(idx, badge);
+    });
+    badge.addEventListener('mouseleave', scheduleHideTierHitPopover);
+    badge.addEventListener('focus', function () {
+      var idx = parseInt(badge.getAttribute('data-platform-index'), 10);
+      if (!isNaN(idx)) showTierHitPopover(idx, badge);
+    });
+    badge.addEventListener('blur', scheduleHideTierHitPopover);
+  });
+  var pop = document.getElementById('tierHitPopover');
+  if (pop && !pop.dataset.popoverBound) {
+    pop.dataset.popoverBound = '1';
+    pop.addEventListener('mouseenter', function () { clearTimeout(tierPopoverHideTimer); });
+    pop.addEventListener('mouseleave', scheduleHideTierHitPopover);
+  }
+}
+
+function openWarningRulesModal() {
+  document.getElementById('warningRulesModal').classList.add('open');
+}
+
+function closeWarningRulesModal() {
+  document.getElementById('warningRulesModal').classList.remove('open');
+}
+
+function saveWarningRulesModal() {
+  showToast('预警规则已保存（原型）');
+  closeWarningRulesModal();
+}
+
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 2200);
+}
+
+function applyPlatformTableFilter() {
+  var tier = (document.getElementById('psFilterTier') || {}).value || '';
+  var visible = 0;
+  document.querySelectorAll('#platformTableBody .platform-row').forEach(function (row) {
+    var ok = !tier || row.getAttribute('data-tier') === tier;
+    row.style.display = ok ? '' : 'none';
+    if (ok) visible++;
+  });
+  var info = document.getElementById('platformPageInfo');
+  if (info) info.textContent = '共 ' + visible + ' 条';
+}
+
+function resetPlatformFilters() {
+  var tierEl = document.getElementById('psFilterTier');
+  if (tierEl) tierEl.value = '';
+  applyPlatformTableFilter();
+}
+
+(function bindPlatformTierFilter() {
+  var tierEl = document.getElementById('psFilterTier');
+  if (!tierEl) return;
+  tierEl.addEventListener('change', applyPlatformTableFilter);
+})();
+
+renderPlatformTableBody();
+
+var psCheckAll = document.getElementById('psCheckAll');
+if (psCheckAll) {
+  psCheckAll.addEventListener('change', function () {
+    var on = this.checked;
+    document.querySelectorAll('#platformTableBody .platform-row').forEach(function (row) {
+      if (row.style.display === 'none') return;
+      var cb = row.querySelector('.ps-row-check');
+      if (cb) cb.checked = on;
+    });
+  });
+}
+
+function getRuleMetricRows(toggleEl) {
+  var tr = toggleEl.closest('tr');
+  if (!tr) return [];
+  var rows = [tr];
+  // 仅「本行含阈值输入」的规则块才连带下一行（ETF + 股票）；数据异常无阈值，不得带上累计收益行
+  if (tr.querySelector('.th-input')) {
+    var next = tr.nextElementSibling;
+    if (next && next.classList.contains('row-risk')) rows.push(next);
+  }
+  return rows;
+}
+
+function syncRuleEnableToggle(toggleEl) {
+  var on = toggleEl.checked;
+  var rows = getRuleMetricRows(toggleEl);
+  rows.forEach(function (row) {
+    row.querySelectorAll('.th-input').forEach(function (inp) {
+      inp.disabled = !on;
+    });
+    if (on) row.classList.remove('row-rule-off');
+    else row.classList.add('row-rule-off');
+  });
+}
+
+var THRESHOLD_FLOAT_RE = /^-?\d*(\.\d*)?$/;
+
+function sanitizeThresholdInput(inp) {
+  var raw = inp.value;
+  if (raw === '') {
+    inp.dataset.lastValid = '';
+    var wrapEmpty = inp.closest('.th-input-affix');
+    if (wrapEmpty) wrapEmpty.classList.remove('invalid');
+    return;
+  }
+  if (!THRESHOLD_FLOAT_RE.test(raw)) {
+    inp.value = inp.dataset.lastValid || '';
+    return;
+  }
+  inp.dataset.lastValid = raw;
+  var wrap = inp.closest('.th-input-affix');
+  if (wrap) wrap.classList.remove('invalid');
+}
+
+function finalizeThresholdInput(inp) {
+  var raw = inp.value.trim();
+  if (raw === '-' || raw === '.') {
+    inp.value = '';
+    raw = '';
+  }
+  if (raw === '') {
+    inp.dataset.lastValid = '';
+    var wrapEmpty = inp.closest('.th-input-affix');
+    if (wrapEmpty) wrapEmpty.classList.remove('invalid');
+    return;
+  }
+  if (!/^-?\d+(\.\d+)?$/.test(raw)) {
+    inp.value = inp.dataset.lastValid || '';
+    var wrapBad = inp.closest('.th-input-affix');
+    if (wrapBad) wrapBad.classList.add('invalid');
+    return;
+  }
+  inp.value = raw;
+  inp.dataset.lastValid = raw;
+  var wrap = inp.closest('.th-input-affix');
+  if (wrap) wrap.classList.remove('invalid');
+}
+
+function bindRuleThresholdInputs() {
+  document.querySelectorAll('.rules-config-table .th-input-num').forEach(function (inp) {
+    if (inp.value && /^-?\d+(\.\d+)?$/.test(inp.value.trim())) {
+      inp.dataset.lastValid = inp.value.trim();
+    } else {
+      inp.dataset.lastValid = '';
+    }
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === '%') e.preventDefault();
+    });
+    inp.addEventListener('input', function () {
+      sanitizeThresholdInput(inp);
+    });
+    inp.addEventListener('blur', function () {
+      finalizeThresholdInput(inp);
+    });
+    inp.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text').trim().replace(/%/g, '');
+      if (text === '' || text === '-' || /^-?\d+(\.\d+)?$/.test(text)) {
+        inp.value = text;
+        sanitizeThresholdInput(inp);
+        finalizeThresholdInput(inp);
+      }
+    });
+  });
+}
+
+document.querySelectorAll('.rules-config-table .rule-enable-toggle').forEach(function (cb) {
+  syncRuleEnableToggle(cb);
+  cb.addEventListener('change', function () {
+    syncRuleEnableToggle(cb);
+  });
+});
+
+bindRuleThresholdInputs();
+
+window.addEventListener('scroll', function () { hideTierHitPopover(); }, true);
+window.addEventListener('resize', hideTierHitPopover);
+</script>
+</body>
+</html>
